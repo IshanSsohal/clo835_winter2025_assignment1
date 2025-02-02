@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request 
 from pymysql import connections
 import os
 import random
@@ -41,7 +41,7 @@ color_codes = {
 # Create a string of supported colors
 SUPPORTED_COLORS = ",".join(color_codes.keys())
 
-# Generate a random color
+# Generate a random color for the background
 COLOR = random.choice(["red", "green", "blue", "blue2", "darkblue", "pink", "lime"])
 
 
