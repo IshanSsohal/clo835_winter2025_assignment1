@@ -15,6 +15,7 @@ DBPORT = int(os.environ.get("DBPORT", 3306))  # Default to 3306 if not set
 # Retry logic for MySQL connection
 MAX_RETRIES = 5
 RETRY_DELAY = 5  # Seconds
+db_conn = None
 
 for attempt in range(MAX_RETRIES):
     try:
@@ -28,13 +29,13 @@ for attempt in range(MAX_RETRIES):
         print("✅ Successfully connected to MySQL")
         break
     except Exception as e:
-        print(f" MySQL Connection attempt {attempt + 1} failed: {e}")
+        print(f"⚠️ MySQL Connection attempt {attempt + 1} failed: {e}")
         time.sleep(RETRY_DELAY)
 else:
-    print("MySQL connection failed after multiple retries. Exiting.")
+    print("❌ MySQL connection failed after multiple retries. Exiting.")
     exit(1)
 
-# Define the supported color codes for env
+# Define supported color codes
 color_codes = {
     "red": "#e74c3c",
     "green": "#16a085",
@@ -47,13 +48,15 @@ color_codes = {
 
 # Default color from environment variable
 COLOR = os.environ.get('APP_COLOR', "lime")
-COLOR = color_codes.get(COLOR, "lime")  # Fallback if an unsupported color is used
+if COLOR not in color_codes:  
+    print(f"⚠️ Invalid APP_COLOR: {COLOR}. Defaulting to 'lime'.")
+    COLOR = "lime"
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/", methods=['GET'])
 def home():
     return render_template('addemp.html', color=color_codes[COLOR])
 
-@app.route("/about", methods=['GET','POST'])
+@app.route("/about", methods=['GET'])
 def about():
     return render_template('about.html', color=color_codes[COLOR])
     
@@ -66,22 +69,21 @@ def AddEmp():
     location = request.form.get('location')
 
     insert_sql = "INSERT INTO employee (emp_id, first_name, last_name, primary_skill, location) VALUES (%s, %s, %s, %s, %s)"
-    cursor = db_conn.cursor()
-
+    
     try:
-        cursor.execute(insert_sql, (emp_id, first_name, last_name, primary_skill, location))
-        db_conn.commit()
+        with db_conn.cursor() as cursor:
+            cursor.execute(insert_sql, (emp_id, first_name, last_name, primary_skill, location))
+            db_conn.commit()
         emp_name = f"{first_name} {last_name}"
         print(f"✅ Employee {emp_name} added successfully")
     except Exception as e:
         print(f"❌ Error inserting employee: {e}")
         db_conn.rollback()
-    finally:
-        cursor.close()
+        emp_name = "Error"
 
     return render_template('addempoutput.html', name=emp_name, color=color_codes[COLOR])
 
-@app.route("/getemp", methods=['GET', 'POST'])
+@app.route("/getemp", methods=['GET'])
 def GetEmp():
     return render_template("getemp.html", color=color_codes[COLOR])
 
@@ -89,15 +91,20 @@ def GetEmp():
 def FetchData():
     emp_id = request.form.get('emp_id')
 
+    if not emp_id:
+        print("⚠️ No Employee ID provided")
+        return render_template("getempoutput.html", id="N/A", fname="N/A",
+                               lname="N/A", interest="N/A", location="N/A", color=color_codes[COLOR])
+
     select_sql = "SELECT emp_id, first_name, last_name, primary_skill, location FROM employee WHERE emp_id=%s"
-    cursor = db_conn.cursor()
 
     try:
-        cursor.execute(select_sql, (emp_id,))
-        result = cursor.fetchone()
+        with db_conn.cursor() as cursor:
+            cursor.execute(select_sql, (emp_id,))
+            result = cursor.fetchone()
 
         if not result:
-            print(" Employee not found")
+            print("⚠️ Employee not found")
             return render_template("getempoutput.html", id="N/A", fname="N/A",
                                    lname="N/A", interest="N/A", location="N/A", color=color_codes[COLOR])
 
@@ -113,9 +120,7 @@ def FetchData():
                                lname=output["last_name"], interest=output["primary_skills"], location=output["location"], color=color_codes[COLOR])
 
     except Exception as e:
-        print(f"Error fetching employee: {e}")
-    finally:
-        cursor.close()
+        print(f"❌ Error fetching employee: {e}")
 
     return render_template("getempoutput.html", id="N/A", fname="N/A", lname="N/A", interest="N/A", location="N/A", color=color_codes[COLOR])
 
