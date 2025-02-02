@@ -5,7 +5,7 @@ import time
 
 app = Flask(__name__)
 
-# Fetch environment variables 
+# Fetch environment variables  for the webapp
 DBHOST = os.environ.get("DBHOST", "mysql-container")
 DBUSER = os.environ.get("DBUSER", "root")
 DBPWD = os.environ.get("DBPWD", "pw")
