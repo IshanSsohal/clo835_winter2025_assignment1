@@ -5,7 +5,7 @@ import time
 
 app = Flask(__name__)
 
-# Fetch environment variables
+# Fetch environment variables 
 DBHOST = os.environ.get("DBHOST", "mysql-container")
 DBUSER = os.environ.get("DBUSER", "root")
 DBPWD = os.environ.get("DBPWD", "pw")
@@ -34,7 +34,7 @@ else:
     print("MySQL connection failed after multiple retries. Exiting.")
     exit(1)
 
-# Define the supported color codes
+# Define the supported color codes for env
 color_codes = {
     "red": "#e74c3c",
     "green": "#16a085",
