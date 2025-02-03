@@ -26,13 +26,13 @@ for attempt in range(MAX_RETRIES):
             password=DBPWD,
             db=DATABASE
         )
-        print("✅ Successfully connected to MySQL")
+        print("Successfully connected to MySQL")
         break
     except Exception as e:
-        print(f"⚠️ MySQL Connection attempt {attempt + 1} failed: {e}")
+        print(f"MySQL Connection attempt {attempt + 1} failed: {e}")
         time.sleep(RETRY_DELAY)
 else:
-    print("❌ MySQL connection failed after multiple retries. Exiting.")
+    print("MySQL connection failed after multiple retries. Exiting.")
     exit(1)
 
 # Define supported color codes
@@ -49,7 +49,7 @@ color_codes = {
 # Default color from environment variable
 COLOR = os.environ.get('APP_COLOR', "lime")
 if COLOR not in color_codes:  
-    print(f"⚠️ Invalid APP_COLOR: {COLOR}. Defaulting to 'lime'.")
+    print(f"Invalid APP_COLOR: {COLOR}. Defaulting to 'lime'.")
     COLOR = "lime"
 
 @app.route("/", methods=['GET'])
@@ -75,9 +75,9 @@ def AddEmp():
             cursor.execute(insert_sql, (emp_id, first_name, last_name, primary_skill, location))
             db_conn.commit()
         emp_name = f"{first_name} {last_name}"
-        print(f"✅ Employee {emp_name} added successfully")
+        print(f"Employee {emp_name} added successfully")
     except Exception as e:
-        print(f"❌ Error inserting employee: {e}")
+        print(f"Error inserting employee: {e}")
         db_conn.rollback()
         emp_name = "Error"
 
@@ -92,7 +92,7 @@ def FetchData():
     emp_id = request.form.get('emp_id')
 
     if not emp_id:
-        print("⚠️ No Employee ID provided")
+        print(" No Employee ID provided")
         return render_template("getempoutput.html", id="N/A", fname="N/A",
                                lname="N/A", interest="N/A", location="N/A", color=color_codes[COLOR])
 
@@ -104,7 +104,7 @@ def FetchData():
             result = cursor.fetchone()
 
         if not result:
-            print("⚠️ Employee not found")
+            print(" Employee not found")
             return render_template("getempoutput.html", id="N/A", fname="N/A",
                                    lname="N/A", interest="N/A", location="N/A", color=color_codes[COLOR])
 
@@ -120,7 +120,7 @@ def FetchData():
                                lname=output["last_name"], interest=output["primary_skills"], location=output["location"], color=color_codes[COLOR])
 
     except Exception as e:
-        print(f"❌ Error fetching employee: {e}")
+        print(f"Error fetching employee: {e}")
 
     return render_template("getempoutput.html", id="N/A", fname="N/A", lname="N/A", interest="N/A", location="N/A", color=color_codes[COLOR])
 
